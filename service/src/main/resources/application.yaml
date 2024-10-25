@@ -1,0 +1,9 @@
+spring:
+  kafka:
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*" #Package of object you want to (de)serialize.
+        retention.ms: 3600000  #1 hour(ms). Message expiration.
+        log.retention.hours: 1  #1 global time for broker.
