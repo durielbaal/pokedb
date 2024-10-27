@@ -10,17 +10,17 @@ import org.springframework.data.mongodb.core.mapping.Document;
 /**
  * Pokemon entity to manage in database (mongodb).
  */
-//@Document(collection = "pokemons")
+@Document(collection = "pokemonDataCollection")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Pokemon {
 
-  //@Id
   /**
    * id.
    */
+  @Id
   private String id;
   /**
    * name.

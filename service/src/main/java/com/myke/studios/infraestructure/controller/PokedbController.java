@@ -31,7 +31,6 @@ public class PokedbController {
     Pokemon pkmndb = Pokemon.builder()
         .id(pkmn.getId())
         .name(pkmn.getName()).build();
-    System.out.println("Pokedb ha recibido de pokeApi: " + pkmn.toString());
     pokedbOutputPort.saveData(pkmndb);
   }
 }
