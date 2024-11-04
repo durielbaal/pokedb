@@ -1,5 +1,6 @@
 package com.myke.studios.domain.output;
 
+import com.myke.studios.PokemonEvent;
 import com.myke.studios.domain.entity.PokemonEntity;
 
 /**
@@ -9,7 +10,9 @@ public interface PokedbOutputPort {
 
   /**
    * Save pokemon data.
-   * @param pokemonEntity in data base format, as entity.
+   * @param pokemonEvent in data base format, as data package(header and body).
+   * @param pokemonEntity body of data.
    */
-  void saveData(PokemonEntity pokemonEntity);
+  void savePokemonEntity(PokemonEvent pokemonEvent,PokemonEntity pokemonEntity);
+
 }

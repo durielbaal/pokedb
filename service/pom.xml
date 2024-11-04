@@ -28,7 +28,7 @@
   <dependencies>
     <dependency>
       <groupId>com.myke.studios</groupId>
-      <artifactId>microservice-pokeapi-lib</artifactId>
+      <artifactId>microservice-pokemonevent</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>

@@ -1,5 +1,6 @@
 package com.myke.studios.infraestructure.controller;
 
+import com.myke.studios.PokemonEvent;
 import com.myke.studios.domain.entity.PokemonEntity;
 import com.myke.studios.domain.output.PokedbOutputPort;
 import com.myke.studios.infraestructure.dto.PokemonDto;
@@ -23,13 +24,14 @@ public class PokedbController {
 
   /**
    * save data when pokeapi send the message.
-   * @param pkmn .
+   * @param pokemonEvent .
    */
-  @KafkaListener(topics = "pokemon-topic", groupId = "pokedb-group")
-  public void saveData(PokemonDto pkmn) {
-    PokemonEntity pkmndb = PokemonEntity.builder()
-        .id(pkmn.getId())
-        .name(pkmn.getName()).build();
-    pokedbOutputPort.saveData(pkmndb);
+  @KafkaListener(topics = "INSERT", groupId = "pokedb-group")
+  public void consume(PokemonEvent pokemonEvent) {
+    PokemonDto pokemonDto = pokemonEvent.getBody();
+    PokemonEntity pokemonEntity = PokemonEntity.builder()
+        .id(pokemonDto.getId())
+        .name(pokemonDto.getName()).build();
+    pokedbOutputPort.savePokemonEntity(pokemonEvent,pokemonEntity);
   }
 }

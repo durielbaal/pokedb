@@ -4,7 +4,7 @@ import com.myke.studios.domain.entity.PokemonEntity;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 /**
- * Pokemon repository.
+ * Pokemon entity repository.
  */
-public interface PokemonRepository  extends MongoRepository<PokemonEntity, String> {
+public interface PokemonEntityRepository extends MongoRepository<PokemonEntity, String> {
 }
