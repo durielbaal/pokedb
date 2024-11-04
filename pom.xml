@@ -12,7 +12,7 @@
 	<version>0.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>pokedb</name>
-	<description>Data Base Management of pokemon</description>
+	<description>Data Base Management of pokemonEntity</description>
 	<url/>
 	<licenses>
 		<license/>
