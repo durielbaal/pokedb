@@ -1,9 +1,7 @@
 package com.myke.studios.infraestructure.controller;
 
-import com.myke.studios.PokemonEvent;
-import com.myke.studios.domain.entity.PokemonEntity;
 import com.myke.studios.domain.output.PokedbOutputPort;
-import com.myke.studios.infraestructure.dto.PokemonDto;
+import com.myke.studios.pokemonevent.insert.PokemonInsertEvent;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -24,14 +22,10 @@ public class PokedbController {
 
   /**
    * save data when pokeapi send the message.
-   * @param pokemonEvent .
+   * @param pokemonInsertEvent .
    */
-  @KafkaListener(topics = "INSERT", groupId = "pokedb-group")
-  public void consume(PokemonEvent pokemonEvent) {
-    PokemonDto pokemonDto = pokemonEvent.getBody();
-    PokemonEntity pokemonEntity = PokemonEntity.builder()
-        .id(pokemonDto.getId())
-        .name(pokemonDto.getName()).build();
-    pokedbOutputPort.savePokemonEntity(pokemonEvent,pokemonEntity);
+  @KafkaListener(topics = "event.PokemonInsertEvent", groupId = "pokedb-group")
+  public void consume(PokemonInsertEvent pokemonInsertEvent) {
+    pokedbOutputPort.savePokemonEntity(pokemonInsertEvent);
   }
 }

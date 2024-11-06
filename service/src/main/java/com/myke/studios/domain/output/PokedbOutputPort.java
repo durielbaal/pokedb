@@ -1,7 +1,6 @@
 package com.myke.studios.domain.output;
 
-import com.myke.studios.PokemonEvent;
-import com.myke.studios.domain.entity.PokemonEntity;
+import com.myke.studios.pokemonevent.insert.PokemonInsertEvent;
 
 /**
  * Output port contract between service and controller.
@@ -10,9 +9,8 @@ public interface PokedbOutputPort {
 
   /**
    * Save pokemon data.
-   * @param pokemonEvent in data base format, as data package(header and body).
-   * @param pokemonEntity body of data.
+   * @param pokemonInsertEvent in data base format, as data package(header and body).
    */
-  void savePokemonEntity(PokemonEvent pokemonEvent,PokemonEntity pokemonEntity);
+  void savePokemonEntity(PokemonInsertEvent pokemonInsertEvent);
 
 }
