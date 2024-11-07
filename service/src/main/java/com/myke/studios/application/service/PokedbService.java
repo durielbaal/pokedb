@@ -1,8 +1,8 @@
 package com.myke.studios.application.service;
 
 import com.myke.studios.domain.entity.PokemonEntity;
-import com.myke.studios.domain.interfaces.PokemonEntityRepository;
-import com.myke.studios.domain.interfaces.PokemonEventRepository;
+import com.myke.studios.domain.interfaces.repository.PokemonEntityRepository;
+import com.myke.studios.domain.interfaces.repository.PokemonEventRepository;
 import com.myke.studios.domain.output.PokedbOutputPort;
 import com.myke.studios.pokemonevent.insert.PokemonInsertEvent;
 import lombok.RequiredArgsConstructor;

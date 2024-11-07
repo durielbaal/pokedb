@@ -1,21 +1,26 @@
 package com.myke.studios.domain.entity;
 
 import com.myke.studios.pokemonevent.insert.PokemonInsertEvent;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+
+
+
 
 /**
  * Pokemon entity to manage in database (mongodb).
  */
-@Document(collection = "pokemonDataCollection")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "Pokemon")
 public class PokemonEntity {
 
   /**
