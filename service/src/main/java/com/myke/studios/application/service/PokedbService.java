@@ -27,13 +27,16 @@ public class PokedbService implements PokedbOutputPort {
   private final PokemonEventRepository pokemonEventRepository;
 
   /**
-   *  Store pokemon in mongodb.
-   * @param pokemonInsertEvent in data base format, as entity.
+   * Database event and pokemon.
+   * @param pokemonInsertEvent in data base format, as data package(header and body).
    */
   @Override
   public void savePokemonEntity(PokemonInsertEvent pokemonInsertEvent) {
-    pokemonEntityRepository.save(PokemonEntity.fromObjectToEntity(pokemonInsertEvent));
-    log.info("pokemonEntity saved correctly");
+    pokemonEntityRepository.save(PokemonEntity.fromObjectToEntity(pokemonInsertEvent))
+        .doOnSuccess(savedPokemon -> log.info("pokemonEntity saved correctly: {}",savedPokemon))
+        .doOnError(e -> log.error("An error ocurred during pokemonEntity save: {}",e.getMessage()))
+        .subscribe();
+
     pokemonEventRepository.save(pokemonInsertEvent);
     log.info("{} saved correctly: ", pokemonInsertEvent.getHeader().getEventType());
   }

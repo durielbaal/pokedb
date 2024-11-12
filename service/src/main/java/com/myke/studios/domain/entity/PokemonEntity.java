@@ -1,15 +1,15 @@
 package com.myke.studios.domain.entity;
 
 import com.myke.studios.pokemonevent.insert.PokemonInsertEvent;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.GeneratedValue;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 
 /**
@@ -19,15 +19,19 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "Pokemon")
+@Table("Pokemon")
 public class PokemonEntity {
 
   /**
    * id.
    */
   @Id
-  private String id;
+  private UUID id;
+  /**
+   * pokedex number.
+   */
+  @Column("pokedex_number")
+  private String pokedexNumber;
   /**
    * name.
    */
@@ -40,7 +44,7 @@ public class PokemonEntity {
    */
   public static PokemonEntity fromObjectToEntity(PokemonInsertEvent pokemonInsertEvent) {
     return PokemonEntity.builder()
-        .id(pokemonInsertEvent.getBody().id)
+        .pokedexNumber(pokemonInsertEvent.getBody().pokedexNumber)
         .name(pokemonInsertEvent.getBody().name).build();
   }
 }
