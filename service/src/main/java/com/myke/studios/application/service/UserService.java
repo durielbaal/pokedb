@@ -1,8 +1,10 @@
 package com.myke.studios.application.service;
 
+import com.myke.studios.config.AnyUserAuthConfig;
 import com.myke.studios.domain.entity.UserEntity;
 import com.myke.studios.domain.interfaces.repository.UserRepository;
 import com.myke.studios.domain.output.UserOutputPort;
+import com.myke.studios.dto.UserDto;
 import com.myke.studios.jwt.JwtService;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,6 +42,7 @@ public class UserService implements UserOutputPort {
   /**
    * User authenticator.
    */
+  private  final AnyUserAuthConfig anyUserAuthConfig;
   /**
    * JWT management service.
    */
@@ -57,11 +60,18 @@ public class UserService implements UserOutputPort {
 
   /**
    * User login.
-   * @param userEntity user itself.
+   * @param userEntityRequested user itself.
    * @return Response.
    */
-  public ResponseEntity<Map<String, String>> login(UserEntity userEntity) {
-    String token = "";//jwtService.generateToken(authentication);
+  public ResponseEntity<Map<String, String>> login(UserEntity userEntityRequested) {
+    UserEntity userDataBase = userRepository
+        .findById(userEntityRequested.getUsername())
+            .block();
+    anyUserAuthConfig.setUserDto(userDataBase.fromEntityToDto());
+    Authentication authentication = anyUserAuthConfig
+        .authenticate(new UsernamePasswordAuthenticationToken(
+            userEntityRequested.getUsername(),userEntityRequested.getPassword()));
+    String token = jwtService.generateToken(authentication);
     Map<String, String> response = new HashMap<>();
     response.put("token", token);
     return ResponseEntity.ok(response);

@@ -25,6 +25,7 @@ public class AuthController {
    * Contract between controller and service.
    */
   public final UserOutputPort userOutputPort;
+
   /**
    * user register.
    * @param userEntity .

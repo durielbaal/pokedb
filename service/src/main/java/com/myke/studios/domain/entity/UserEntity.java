@@ -1,5 +1,6 @@
 package com.myke.studios.domain.entity;
 
+import com.myke.studios.dto.UserDto;
 import java.util.List;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
@@ -28,6 +29,18 @@ public class UserEntity implements UserDetails {
    */
   private List<String> roles;
 
+  /**
+   * Converter from Entity to Dto.
+   * @return UserDto.
+   */
+  public UserDto fromEntityToDto() {
+    return new UserDto(this.username,this.getPassword(),this.roles);
+  }
+
+  /**
+   * Get SimpleGrantedAuthority from role String list.
+   * @return SimpleGrantedAuthority list.
+   */
   @Override
   public List<SimpleGrantedAuthority> getAuthorities() {
     return roles.stream()
