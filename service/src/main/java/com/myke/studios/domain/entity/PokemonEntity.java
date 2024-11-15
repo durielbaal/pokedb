@@ -1,7 +1,6 @@
 package com.myke.studios.domain.entity;
 
 import com.myke.studios.pokemonevent.insert.PokemonInsertEvent;
-import jakarta.persistence.GeneratedValue;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
