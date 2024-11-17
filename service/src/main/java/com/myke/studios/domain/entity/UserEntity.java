@@ -1,70 +1,48 @@
 package com.myke.studios.domain.entity;
 
 import com.myke.studios.dto.UserDto;
-import java.util.List;
+import com.myke.studios.enums.Role;
+import java.util.UUID;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * User entity (table in DB).
  */
 @Table("User")
 @Data
-public class UserEntity implements UserDetails {
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserEntity  {
 
+  /**
+   * id generado por user en postgre.
+   */
+  @Id
+  private UUID id;
   /**
    * Username.
    */
-  @Id
   private String username;
   /**
    * Password.
    */
   private String password;
-  /**
-   * List of roles.
-   */
-  private List<String> roles;
 
   /**
-   * Converter from Entity to Dto.
-   * @return UserDto.
+   * Convert UserEntity to Dto.
+   * @param roleFlux flux of Roles, to manage in this object (dto).
+   * @return .
    */
-  public UserDto fromEntityToDto() {
-    return new UserDto(this.username,this.getPassword(),this.roles);
+  public Mono<UserDto> fromEntityToDto(Flux<Role> roleFlux) {
+    return roleFlux.map(Role::getRoleName)
+        .collectList()
+        .map(roleNames -> new UserDto(this.username, this.getPassword(), roleNames));
   }
 
-  /**
-   * Get SimpleGrantedAuthority from role String list.
-   * @return SimpleGrantedAuthority list.
-   */
-  @Override
-  public List<SimpleGrantedAuthority> getAuthorities() {
-    return roles.stream()
-        .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-        .toList();
-  }
-
-  @Override
-  public boolean isAccountNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isAccountNonLocked() {
-    return true;
-  }
-
-  @Override
-  public boolean isCredentialsNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isEnabled() {
-    return true;
-  }
 }
