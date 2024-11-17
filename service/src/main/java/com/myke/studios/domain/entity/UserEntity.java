@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 /**
  * User entity (table in DB).
  */
-@Table("User")
+@Table("Users")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

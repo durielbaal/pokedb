@@ -156,25 +156,27 @@ public class UserService implements UserInputPort {
       return Mono.error(new IllegalArgumentException("Invalid User."));
     }
     if (userEntity.getUsername() == null || userEntity.getUsername().isEmpty()) {
-      return Mono.error(new IllegalArgumentException("invalid Username. cant be empty"));
+      return Mono.error(new IllegalArgumentException("Invalid Username. Can't be empty"));
     }
     if (userEntity.getPassword() == null || userEntity.getPassword().isEmpty()) {
-      return Mono.error(new IllegalArgumentException("invalid password. cant be empty"));
+      return Mono.error(new IllegalArgumentException("Invalid password. Can't be empty"));
     }
     return getUserByUsername(userEntity.getUsername())
-        .flatMap(existingUser -> Mono.<UserEntity>error(
-            new IllegalArgumentException("The user already exist.")))
-        .switchIfEmpty(
-            Mono.defer(() -> {
-              userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
-              UserRoleEntity userRole = new UserRoleEntity();
-              userRole.setRol(Role.USER);
-              userRole.setUsername(userEntity.getUsername());
-              userRoleRepository.save(userRole);
-              return userRepository.save(userEntity);
-            })
-        );
+        .flatMap(existingUser -> {
+          // Si el usuario existe, lanzar error
+          return Mono.<UserEntity>error(new IllegalArgumentException("The user already exists."));
+        })
+        .onErrorResume(UsernameNotFoundException.class, e -> {
+          userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
+          UserRoleEntity userRole = new UserRoleEntity();
+          userRole.setRol(Role.USER);
+          userRole.setUsername(userEntity.getUsername());
+          return userRoleRepository.save(userRole)
+              .then(userRepository.save(userEntity));
+        });
   }
+
+
 
 
 }
