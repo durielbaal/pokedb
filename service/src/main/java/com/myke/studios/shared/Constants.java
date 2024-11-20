@@ -22,5 +22,9 @@ public class Constants {
    * register.
    */
   public static final String USER_REGISTER = "/register";
+  /**
+   * Admin dashboard.
+   */
+  public static final String ADMIN_DASHBOARD = "/admin";
 
 }

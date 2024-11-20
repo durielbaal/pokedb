@@ -18,6 +18,6 @@ public interface UserRepository extends R2dbcRepository<UserEntity, UUID> {
    * @param username .
    * @return .
    */
-  @Query("SELECT u FROM Users u WHERE u.username = :username")
+  @Query("SELECT * FROM Users WHERE username = :username")
   Mono<UserEntity> findByUsername(String username);
 }

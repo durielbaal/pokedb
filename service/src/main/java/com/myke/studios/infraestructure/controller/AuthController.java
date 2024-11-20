@@ -6,7 +6,11 @@ import com.myke.studios.shared.Constants;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -63,5 +67,16 @@ public class AuthController {
         );
   }
 
+  /**
+   * Admin dashboard.
+   * @return welcome.
+   */
+  @GetMapping(path = Constants.ADMIN_DASHBOARD)
+  @PreAuthorize("hasAuthority('admin')")
+  public Mono<ResponseEntity<String>> dashboard_admin() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    System.out.println("Authorities: " + authentication.getAuthorities());
+    return Mono.just(ResponseEntity.ok("Welcome:this is Admin department:"));
+  }
 
 }

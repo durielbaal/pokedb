@@ -18,7 +18,7 @@ public interface UserRoleRepository extends R2dbcRepository<UserRoleEntity, UUID
    * @param username .
    * @return .
    */
-  @Query("SELECT role FROM User_roles WHERE username = :username")
+  @Query("SELECT * FROM User_roles WHERE username = :username")
   public Flux<UserRoleEntity> getRolesByUsername(String username);
 
 

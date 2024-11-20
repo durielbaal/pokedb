@@ -29,6 +29,6 @@ public class UserRoleEntity {
   /**
    * Role.
    */
-  private Role rol;
+  private Role role;
 
 }

@@ -8,16 +8,11 @@ import com.myke.studios.domain.interfaces.repository.UserRepository;
 import com.myke.studios.domain.interfaces.repository.UserRoleRepository;
 import com.myke.studios.enums.Role;
 import com.myke.studios.jwt.JwtService;
-import io.netty.channel.VoidChannelPromise;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.UserDatabase;
-import org.springframework.core.MethodParameter;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
@@ -27,7 +22,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -63,7 +57,7 @@ public class UserService implements UserInputPort {
   /**
    * Redis template.
    */
-  private RedisTemplate<String, String> redisTemplate;
+  private final RedisTemplate<String, String> redisTemplate;
 
   /**
    * User login.
@@ -88,7 +82,6 @@ public class UserService implements UserInputPort {
                 valueOps.set(userDto.getUsername(), token, 1, TimeUnit.DAYS);
                 Map<String, String> response = new HashMap<>();
                 response.put("token", token);
-
                 return Mono.just(ResponseEntity.ok(response));
               });
         });
@@ -106,7 +99,6 @@ public class UserService implements UserInputPort {
     }
     token = token.substring(7);
     String username = jwtService.getUsernameFromToken(token);
-
     return Mono.fromRunnable(() -> redisTemplate.delete(username));
   }
 
@@ -141,7 +133,7 @@ public class UserService implements UserInputPort {
    */
   private Flux<Role> getRolesByUsername(UserEntity userEntity) {
     return userRoleRepository.getRolesByUsername(userEntity.getUsername())
-        .map(UserRoleEntity::getRol)
+        .map(UserRoleEntity::getRole)
         .switchIfEmpty(Flux.error(new UsernameNotFoundException(
             "No roles found for user: " + userEntity.getUsername())));
   }
@@ -169,7 +161,7 @@ public class UserService implements UserInputPort {
         .onErrorResume(UsernameNotFoundException.class, e -> {
           userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
           UserRoleEntity userRole = new UserRoleEntity();
-          userRole.setRol(Role.USER);
+          userRole.setRole(Role.USER);
           userRole.setUsername(userEntity.getUsername());
           return userRoleRepository.save(userRole)
               .then(userRepository.save(userEntity));
