@@ -2,6 +2,7 @@ package com.myke.studios.domain.entity;
 
 import com.myke.studios.dto.UserDto;
 import com.myke.studios.enums.Role;
+import com.myke.studios.userevent.register.UserRegisterEvent;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -45,4 +46,15 @@ public class UserEntity  {
         .map(roleNames -> new UserDto(this.username, this.getPassword(), roleNames));
   }
 
+  /**
+   * From Dto to Entity.
+   * @param userRegisterEvent .
+   * @return Userentity itself.
+   */
+  public static UserEntity fromDtoToEntity(UserRegisterEvent userRegisterEvent) {
+    UserEntity userEntity = new UserEntity();
+    userEntity.setUsername(userRegisterEvent.getBody().username);
+    userEntity.setPassword(userRegisterEvent.getBody().password);
+    return userEntity;
+  }
 }

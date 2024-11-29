@@ -1,11 +1,14 @@
 package com.myke.studios.infraestructure.controller;
 
+import com.myke.studios.constant.ConstantEvent;
 import com.myke.studios.domain.entity.UserEntity;
 import com.myke.studios.domain.input.UserInputPort;
 import com.myke.studios.shared.Constants;
+import com.myke.studios.userevent.register.UserRegisterEvent;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,7 +27,6 @@ import reactor.core.publisher.Mono;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(Constants.USER_BASE_PATH)
 public class AuthController {
 
   /**
@@ -34,12 +36,12 @@ public class AuthController {
 
   /**
    * user register.
-   * @param userEntity .
+   * @param userRegisterEvent .
    * @return response.
    */
-  @PostMapping(path = Constants.USER_REGISTER)
-  public Mono<ResponseEntity<String>> register(@RequestBody UserEntity userEntity) {
-    return userInputPort.register(userEntity);
+  @KafkaListener(topics = ConstantEvent.USER_REGISTER_EVENT, groupId = "pokedb-group")
+  public Mono<ResponseEntity<String>> consume(UserRegisterEvent userRegisterEvent) {
+    return userInputPort.register(userRegisterEvent);
   }
 
   /**

@@ -4,10 +4,12 @@ import com.myke.studios.config.AnyUserAuthConfig;
 import com.myke.studios.domain.entity.UserEntity;
 import com.myke.studios.domain.entity.UserRoleEntity;
 import com.myke.studios.domain.input.UserInputPort;
+import com.myke.studios.domain.interfaces.repository.UserEventRepository;
 import com.myke.studios.domain.interfaces.repository.UserRepository;
 import com.myke.studios.domain.interfaces.repository.UserRoleRepository;
 import com.myke.studios.enums.Role;
 import com.myke.studios.jwt.JwtService;
+import com.myke.studios.userevent.register.UserRegisterEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -43,9 +45,9 @@ public class UserService implements UserInputPort {
    */
   private  final UserRoleRepository userRoleRepository;
   /**
-   * Password encoder.
+   * User Event Repository.
    */
-  private final PasswordEncoder passwordEncoder;
+  private final UserEventRepository userEventRepository;
   /**
    * User authenticator.
    */
@@ -104,15 +106,23 @@ public class UserService implements UserInputPort {
 
   /**
    * User register.
-   * @param userEntity user itself.
+   * @param userRegisterEvent user itself.
    * @return response.
    */
-  public Mono<ResponseEntity<String>> register(UserEntity userEntity) {
-    return this.registerUser(userEntity)
-        .map(user -> ResponseEntity.ok("User registered successfully"))
-        .onErrorResume(e -> Mono.just(ResponseEntity
-            .badRequest()
-            .body("Error registering user: " + e.getMessage())));
+  public Mono<ResponseEntity<String>> register(UserRegisterEvent userRegisterEvent) {
+    return this.registerUser(userRegisterEvent)
+        .flatMap(user -> {
+          userRegisterEvent.getHeader().setResponse("User registered successfully");
+          userEventRepository.save(userRegisterEvent);
+          return Mono.just(ResponseEntity.ok("User registered successfully"));
+        })
+        .onErrorResume(e -> {
+          userRegisterEvent.getHeader().setResponse("Register error with this user");
+          userEventRepository.save(userRegisterEvent);
+          return Mono.just(ResponseEntity
+                  .badRequest()
+                  .body("Error registering user: " + e.getMessage()));
+        });
   }
 
   /**
@@ -140,26 +150,17 @@ public class UserService implements UserInputPort {
 
   /**
    * Register user into Data base.
-   * @param userEntity user itself.
+   * @param userRegisterEvent user and event itself.
    * @return Mono UserEntity.
    */
-  private Mono<UserEntity> registerUser(UserEntity userEntity) {
-    if (userEntity == null) {
-      return Mono.error(new IllegalArgumentException("Invalid User."));
-    }
-    if (userEntity.getUsername() == null || userEntity.getUsername().isEmpty()) {
-      return Mono.error(new IllegalArgumentException("Invalid Username. Can't be empty"));
-    }
-    if (userEntity.getPassword() == null || userEntity.getPassword().isEmpty()) {
-      return Mono.error(new IllegalArgumentException("Invalid password. Can't be empty"));
-    }
+  private Mono<UserEntity> registerUser(UserRegisterEvent userRegisterEvent) {
+    UserEntity userEntity = UserEntity.fromDtoToEntity(userRegisterEvent);
     return getUserByUsername(userEntity.getUsername())
         .flatMap(existingUser -> {
-          // Si el usuario existe, lanzar error
           return Mono.<UserEntity>error(new IllegalArgumentException("The user already exists."));
         })
         .onErrorResume(UsernameNotFoundException.class, e -> {
-          userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
+          userEntity.setPassword(userEntity.getPassword());
           UserRoleEntity userRole = new UserRoleEntity();
           userRole.setRole(Role.USER);
           userRole.setUsername(userEntity.getUsername());
@@ -167,8 +168,4 @@ public class UserService implements UserInputPort {
               .then(userRepository.save(userEntity));
         });
   }
-
-
-
-
 }
