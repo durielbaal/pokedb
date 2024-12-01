@@ -4,12 +4,15 @@ import com.myke.studios.config.AnyUserAuthConfig;
 import com.myke.studios.domain.entity.UserEntity;
 import com.myke.studios.domain.entity.UserRoleEntity;
 import com.myke.studios.domain.input.UserInputPort;
-import com.myke.studios.domain.interfaces.repository.UserEventRepository;
+import com.myke.studios.domain.interfaces.repository.UserLoginEventRepository;
+import com.myke.studios.domain.interfaces.repository.UserRegisterEventRepository;
 import com.myke.studios.domain.interfaces.repository.UserRepository;
 import com.myke.studios.domain.interfaces.repository.UserRoleRepository;
 import com.myke.studios.enums.Role;
 import com.myke.studios.jwt.JwtService;
+import com.myke.studios.userevent.login.UserLoginEvent;
 import com.myke.studios.userevent.register.UserRegisterEvent;
+import io.jsonwebtoken.security.InvalidKeyException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -19,10 +22,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
@@ -45,9 +48,13 @@ public class UserService implements UserInputPort {
    */
   private  final UserRoleRepository userRoleRepository;
   /**
-   * User Event Repository.
+   * User Event Register Repository.
    */
-  private final UserEventRepository userEventRepository;
+  private final UserRegisterEventRepository userRegisterEventRepository;
+  /**
+   * User Event Login Repository.
+   */
+  private final UserLoginEventRepository userLoginEventRepository;
   /**
    * User authenticator.
    */
@@ -63,28 +70,46 @@ public class UserService implements UserInputPort {
 
   /**
    * User login.
-   * @param userEntityRequested user itself.
+   * @param userLoginEvent user itself.
    * @return Response.
    */
-  public Mono<ResponseEntity<Map<String, String>>> login(UserEntity userEntityRequested) {
+  public Mono<ResponseEntity<Map<String, String>>> login(UserLoginEvent userLoginEvent) {
+    UserEntity userEntityRequested = UserEntity.fromDtoToEntity(userLoginEvent);
     return getUserByUsername(userEntityRequested.getUsername())
         .flatMap(userDataBase -> {
           Flux<Role> roleFlux = getRolesByUsername(userDataBase);
           return userDataBase.fromEntityToDto(roleFlux)
               .flatMap(userDto -> {
                 anyUserAuthConfig.setUserDto(userDto);
-                Authentication authentication = anyUserAuthConfig.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                        userEntityRequested.getUsername(),
-                        userEntityRequested.getPassword()
-                    )
-                );
-                String token = jwtService.generateToken(authentication);
-                ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
-                valueOps.set(userDto.getUsername(), token, 1, TimeUnit.DAYS);
-                Map<String, String> response = new HashMap<>();
-                response.put("token", token);
-                return Mono.just(ResponseEntity.ok(response));
+                try {
+                  Authentication authentication = anyUserAuthConfig.authenticate(
+                      new UsernamePasswordAuthenticationToken(
+                          userEntityRequested.getUsername(),
+                          userEntityRequested.getPassword()
+                      )
+                  );
+                  String token = jwtService.generateToken(authentication);
+                  ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
+                  valueOps.set(userDto.getUsername(), token, 1, TimeUnit.DAYS);
+                  userLoginEvent.getHeader().setResponse("Login success...");
+                  userLoginEventRepository.save(userLoginEvent);
+                  Map<String, String> response = new HashMap<>();
+                  response.put("token", token);
+                  return Mono.just(ResponseEntity.ok(response));
+                } catch (BadCredentialsException e) {
+                  Map<String, String> response = new HashMap<>();
+                  response.put("Error", "Bad credentials: " + e.getMessage());
+                  userLoginEvent.getHeader().setResponse(response.toString());
+                  userLoginEventRepository.save(userLoginEvent);
+                  return  Mono.just(ResponseEntity.badRequest().body(response));
+                } catch (InvalidKeyException e) {
+                  Map<String, String> response = new HashMap<>();
+                  response.put("Error", "Invalid key sign: " + e.getMessage());
+                  userLoginEvent.getHeader().setResponse(response.toString());
+                  userLoginEventRepository.save(userLoginEvent);
+                  return  Mono.just(ResponseEntity.badRequest().body(response));
+                }
+
               });
         });
   }
@@ -113,12 +138,12 @@ public class UserService implements UserInputPort {
     return this.registerUser(userRegisterEvent)
         .flatMap(user -> {
           userRegisterEvent.getHeader().setResponse("User registered successfully");
-          userEventRepository.save(userRegisterEvent);
+          userRegisterEventRepository.save(userRegisterEvent);
           return Mono.just(ResponseEntity.ok("User registered successfully"));
         })
         .onErrorResume(e -> {
           userRegisterEvent.getHeader().setResponse("Register error with this user");
-          userEventRepository.save(userRegisterEvent);
+          userRegisterEventRepository.save(userRegisterEvent);
           return Mono.just(ResponseEntity
                   .badRequest()
                   .body("Error registering user: " + e.getMessage()));

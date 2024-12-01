@@ -1,5 +1,6 @@
 package com.myke.studios.infraestructure.controller;
 
+import com.myke.studios.constant.ConstantEvent;
 import com.myke.studios.domain.output.PokedbOutputPort;
 import com.myke.studios.pokemonevent.insert.PokemonInsertEvent;
 import lombok.Data;
@@ -24,7 +25,7 @@ public class PokedbController {
    * save data when pokeapi send the message.
    * @param pokemonInsertEvent .
    */
-  @KafkaListener(topics = "event.PokemonInsertEvent", groupId = "pokedb-group")
+  @KafkaListener(topics = "event.PokemonInsertEvent", groupId = ConstantEvent.POKE_INSERT_GROUP)
   public void consume(PokemonInsertEvent pokemonInsertEvent) {
     pokedbOutputPort.savePokemonEntity(pokemonInsertEvent);
   }

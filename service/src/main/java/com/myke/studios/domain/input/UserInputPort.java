@@ -1,6 +1,7 @@
 package com.myke.studios.domain.input;
 
 import com.myke.studios.domain.entity.UserEntity;
+import com.myke.studios.userevent.login.UserLoginEvent;
 import com.myke.studios.userevent.register.UserRegisterEvent;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
@@ -13,10 +14,10 @@ public interface UserInputPort {
 
   /**
    * User login.
-   * @param userEntity user object.
+   * @param userLoginEvent user with events data.
    * @return response.
    */
-  Mono<ResponseEntity<Map<String, String>>> login(UserEntity userEntity);
+  Mono<ResponseEntity<Map<String, String>>> login(UserLoginEvent userLoginEvent);
 
   /**
    * User register.

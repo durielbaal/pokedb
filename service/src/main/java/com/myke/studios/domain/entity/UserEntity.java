@@ -1,7 +1,9 @@
 package com.myke.studios.domain.entity;
 
+import com.myke.studios.abstracts.AbstractUserEvent;
 import com.myke.studios.dto.UserDto;
 import com.myke.studios.enums.Role;
+import com.myke.studios.userevent.login.UserLoginEvent;
 import com.myke.studios.userevent.register.UserRegisterEvent;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -48,13 +50,20 @@ public class UserEntity  {
 
   /**
    * From Dto to Entity.
-   * @param userRegisterEvent .
+   * @param abstractUserEvent .
    * @return Userentity itself.
    */
-  public static UserEntity fromDtoToEntity(UserRegisterEvent userRegisterEvent) {
+  public static UserEntity fromDtoToEntity(AbstractUserEvent abstractUserEvent) {
     UserEntity userEntity = new UserEntity();
-    userEntity.setUsername(userRegisterEvent.getBody().username);
-    userEntity.setPassword(userRegisterEvent.getBody().password);
+    if (abstractUserEvent instanceof UserLoginEvent) {
+      UserLoginEvent userLoginEvent = (UserLoginEvent) abstractUserEvent;
+      userEntity.setUsername(userLoginEvent.getBody().getUsername());
+      userEntity.setPassword(userLoginEvent.getBody().getPassword());
+    } else if (abstractUserEvent instanceof UserRegisterEvent) {
+      UserRegisterEvent userRegisterEvent = (UserRegisterEvent) abstractUserEvent;
+      userEntity.setUsername(userRegisterEvent.getBody().getUsername());
+      userEntity.setPassword(userRegisterEvent.getBody().getPassword());
+    }
     return userEntity;
   }
 }
