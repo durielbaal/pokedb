@@ -17,7 +17,7 @@ public interface UserInputPort {
    * @param userLoginEvent user with events data.
    * @return response.
    */
-  Mono<ResponseEntity<Map<String, String>>> login(UserLoginEvent userLoginEvent);
+  Mono<ResponseEntity<String>> login(UserLoginEvent userLoginEvent);
 
   /**
    * User register.

@@ -36,29 +36,6 @@ public class AuthController {
   public final UserInputPort userInputPort;
 
   /**
-   * user register.
-   * @param userRegisterEvent .
-   * @return response.
-   */
-  @KafkaListener(topics = ConstantEvent.USER_REGISTER_EVENT,
-      groupId = ConstantEvent.USER_REGISTER_GROUP)
-  public Mono<ResponseEntity<String>> consume(UserRegisterEvent userRegisterEvent) {
-    return userInputPort.register(userRegisterEvent);
-  }
-
-  /**
-   * user register.
-   * @param userLoginEvent .
-   * @return response.
-   */
-  @KafkaListener(topics = ConstantEvent.USER_LOGIN_EVENT,
-      groupId = ConstantEvent.USER_LOGIN_GROUP)
-  public Mono<ResponseEntity<Map<String, String>>> consume(
-      @RequestBody UserLoginEvent userLoginEvent) {
-    return userInputPort.login(userLoginEvent);
-  }
-
-  /**
    * Log out of the application.
    * @param token .
    * @return .

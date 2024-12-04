@@ -1,6 +1,7 @@
 package com.myke.studios.application.service;
 
 import com.myke.studios.config.AnyUserAuthConfig;
+import com.myke.studios.constant.ConstantEvent;
 import com.myke.studios.domain.entity.UserEntity;
 import com.myke.studios.domain.entity.UserRoleEntity;
 import com.myke.studios.domain.input.UserInputPort;
@@ -15,6 +16,7 @@ import com.myke.studios.userevent.register.UserRegisterEvent;
 import io.jsonwebtoken.security.InvalidKeyException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,7 +75,7 @@ public class UserService implements UserInputPort {
    * @param userLoginEvent user itself.
    * @return Response.
    */
-  public Mono<ResponseEntity<Map<String, String>>> login(UserLoginEvent userLoginEvent) {
+  public Mono<ResponseEntity<String>> login(UserLoginEvent userLoginEvent) {
     UserEntity userEntityRequested = UserEntity.fromDtoToEntity(userLoginEvent);
     return getUserByUsername(userEntityRequested.getUsername())
         .flatMap(userDataBase -> {
@@ -93,23 +95,14 @@ public class UserService implements UserInputPort {
                   valueOps.set(userDto.getUsername(), token, 1, TimeUnit.DAYS);
                   userLoginEvent.getHeader().setResponse("Login success...");
                   userLoginEventRepository.save(userLoginEvent);
-                  Map<String, String> response = new HashMap<>();
-                  response.put("token", token);
-                  return Mono.just(ResponseEntity.ok(response));
-                } catch (BadCredentialsException e) {
-                  Map<String, String> response = new HashMap<>();
-                  response.put("Error", "Bad credentials: " + e.getMessage());
-                  userLoginEvent.getHeader().setResponse(response.toString());
+                  log.info("token:".concat(token));
+                  return Mono.just(ResponseEntity.ok("token:".concat(token)));
+                } catch (BadCredentialsException | InvalidKeyException e) {
+                  userLoginEvent.getHeader().setResponse("Error".concat(e.getMessage()));
                   userLoginEventRepository.save(userLoginEvent);
-                  return  Mono.just(ResponseEntity.badRequest().body(response));
-                } catch (InvalidKeyException e) {
-                  Map<String, String> response = new HashMap<>();
-                  response.put("Error", "Invalid key sign: " + e.getMessage());
-                  userLoginEvent.getHeader().setResponse(response.toString());
-                  userLoginEventRepository.save(userLoginEvent);
-                  return  Mono.just(ResponseEntity.badRequest().body(response));
+                  log.error("Error:".concat(e.getMessage()));
+                  return  Mono.just(ResponseEntity.badRequest().body("bad credentials..."));
                 }
-
               });
         });
   }
@@ -137,16 +130,19 @@ public class UserService implements UserInputPort {
   public Mono<ResponseEntity<String>> register(UserRegisterEvent userRegisterEvent) {
     return this.registerUser(userRegisterEvent)
         .flatMap(user -> {
-          userRegisterEvent.getHeader().setResponse("User registered successfully");
+          userRegisterEvent.getHeader()
+              .setResponse("User registered successfully");
           userRegisterEventRepository.save(userRegisterEvent);
+          log.info("User registered successfully");
           return Mono.just(ResponseEntity.ok("User registered successfully"));
         })
         .onErrorResume(e -> {
-          userRegisterEvent.getHeader().setResponse("Register error with this user");
+          userRegisterEvent.getHeader()
+              .setResponse("Register error with this user".concat(e.getMessage()));
           userRegisterEventRepository.save(userRegisterEvent);
-          return Mono.just(ResponseEntity
-                  .badRequest()
-                  .body("Error registering user: " + e.getMessage()));
+          log.error("Register error with this user".concat(e.getMessage()));
+          return Mono.just(ResponseEntity.badRequest()
+              .body("Register error with this user".concat(e.getMessage())));
         });
   }
 
@@ -167,7 +163,8 @@ public class UserService implements UserInputPort {
    * @return FLux of roles.
    */
   private Flux<Role> getRolesByUsername(UserEntity userEntity) {
-    return userRoleRepository.getRolesByUsername(userEntity.getUsername())
+    return userRoleRepository
+        .getRolesByUsername(userEntity.getUsername())
         .map(UserRoleEntity::getRole)
         .switchIfEmpty(Flux.error(new UsernameNotFoundException(
             "No roles found for user: " + userEntity.getUsername())));
